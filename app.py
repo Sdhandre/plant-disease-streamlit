@@ -17,25 +17,36 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* App background gradient */
+    /* Background */
     .stApp {
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
     }
-    /* Global text color for readability */
-    h1, h2, h3, h4, h5, h6, p, label {
-        color: #2e7d32 !important;
+
+    /* Override text color for all text elements with more specificity */
+    html, body, [class^="css"] {
+        color: #1b5e20 !important;
+        font-weight: 600;
     }
-    /* Styled title */
+
+    /* Title styling */
     .title {
         font-size: 3rem;
         font-weight: bold;
         text-align: center;
+        color: #1b5e20;
         margin-top: 1rem;
     }
-    /* Button styling */
+
+    /* Subheaders */
+    .stMarkdown h2, .stMarkdown h3 {
+        color: #256029 !important;
+        font-weight: bold;
+    }
+
+    /* Buttons */
     div.stButton > button {
         background-color: #388e3c;
-        color: white;
+        color: white !important;
         font-size: 1.2rem;
         padding: 0.6rem 1.2rem;
         border-radius: 12px;
@@ -44,15 +55,21 @@ st.markdown(
     div.stButton > button:hover {
         background-color: #2e7d32;
     }
-    /* Sidebar headings */
-    .sidebar .sidebar-content h2,
-    .sidebar .sidebar-content h3 {
-        color: #1b5e20;
+
+    /* Sidebar text and headings */
+    .sidebar .sidebar-content, .css-1d391kg, .css-1v3fvcr {
+        color: #1b5e20 !important;
+    }
+
+    /* Footer */
+    footer, footer * {
+        color: #1b5e20 !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 # Constants
 MODEL_PATH = "plant_disease_modelfinal2.h5"
