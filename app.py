@@ -17,16 +17,22 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+    /* App background gradient */
     .stApp {
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
     }
+    /* Global text color for readability */
+    h1, h2, h3, h4, h5, h6, p, label {
+        color: #2e7d32 !important;
+    }
+    /* Styled title */
     .title {
-        color: #2e7d32;
         font-size: 3rem;
         font-weight: bold;
         text-align: center;
         margin-top: 1rem;
     }
+    /* Button styling */
     div.stButton > button {
         background-color: #388e3c;
         color: white;
@@ -38,7 +44,9 @@ st.markdown(
     div.stButton > button:hover {
         background-color: #2e7d32;
     }
-    .sidebar .sidebar-content h2 {
+    /* Sidebar headings */
+    .sidebar .sidebar-content h2,
+    .sidebar .sidebar-content h3 {
         color: #1b5e20;
     }
     </style>
@@ -83,7 +91,9 @@ st.markdown("---")
 # Sidebar
 with st.sidebar:
     st.header("About")
-    st.write("Upload a clear photo of a leaf, and our AI-powered model will identify the disease for you in seconds!")
+    st.write(
+        "Upload a clear photo of a leaf, and our AI-powered model will identify the disease for you in seconds!"
+    )
     st.markdown("---")
     st.subheader("Possible Classes:")
     for cls in CLASS_NAMES:
@@ -96,7 +106,11 @@ upload_col, result_col = st.columns(2)
 
 with upload_col:
     st.subheader("1. Upload Leaf Image")
-    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"], help="Choose a leaf image file")
+    uploaded_file = st.file_uploader(
+        label="",
+        type=["jpg", "jpeg", "png"],
+        help="Choose a leaf image file"
+    )
 
 with result_col:
     st.subheader("2. Prediction")
@@ -122,4 +136,7 @@ with result_col:
 
 # Footer
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #555;'>&copy; 2025 Plant Disease Detection | Powered by TensorFlow & Streamlit</p>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='text-align: center; color: #555;'>&copy; 2025 Plant Disease Detection | Powered by TensorFlow & Streamlit</p>",
+    unsafe_allow_html=True
+)
