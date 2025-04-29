@@ -136,7 +136,7 @@ def main():
     with col1:
         st.image("https://cdn-icons-png.flaticon.com/512/2917/2917996.png", width=80)
     with col2:
-        st.title("PhytoScan AI")
+        st.title("AgriScan AI")
         st.markdown("**AI-Powered Plant Health Diagnosis System**")
 
     st.markdown("---")
