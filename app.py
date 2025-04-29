@@ -8,7 +8,7 @@ from PIL import Image
 
 # ✅ Page Config
 st.set_page_config(
-    page_title="AgriScan- Plant Disease Detection",
+    page_title="PhytoScan AI - Plant Disease Detection",
     page_icon="🌱",
     layout="centered",
     initial_sidebar_state="expanded"
@@ -45,14 +45,51 @@ def load_cached_model():
         st.error(f"Model loading failed: {str(e)}")
         raise
 
-# ✅ Display Prediction Results
+# ✅ Display Prediction Results in Card Style
 def display_results(predicted_class, confidence):
-    st.markdown("### 🧾 Diagnosis Result")
-    st.success(f"**Predicted Disease:** {predicted_class.replace('_', ' ')}")
-    st.info(f"**Confidence:** {confidence:.2f}%")
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div style="background-color: #3B3B6D; padding: 20px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); color: white;">
+            <h3 style="text-align: center;">Diagnosis Result</h3>
+            <h4 style="text-align: center; font-size: 1.4rem;">**Predicted Disease:** {predicted_class.replace('_', ' ')}</h4>
+            <h5 style="text-align: center; font-size: 1.2rem;">**Confidence:** {confidence:.2f}%</h5>
+        </div>
+        """, unsafe_allow_html=True
+    )
 
 # ✅ Main App Logic
 def main():
+    # Custom CSS for Background and Buttons
+    st.markdown(
+        """
+        <style>
+            .block-container {
+                padding: 2rem 1rem 2rem 1rem;
+                background: linear-gradient(to right, #0f4b7b, #3b4c7d, #5e7c8a);
+                border-radius: 12px;
+            }
+            .stButton button {
+                background-color: #5C6BC0;
+                color: white;
+                font-weight: bold;
+                border-radius: 8px;
+                padding: 0.8em 1.6em;
+                transition: all 0.3s ease;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            }
+            .stButton button:hover {
+                background-color: #3a4f8d;
+                transform: translateY(-2px);
+                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            }
+            .stImage img {
+                border-radius: 12px;
+            }
+        </style>
+        """, unsafe_allow_html=True
+    )
+
     # App Header
     col1, col2 = st.columns([1, 4])
     with col1:
@@ -87,7 +124,7 @@ def main():
             try:
                 model = load_cached_model()
 
-                with st.status("🧠 AI Analysis in Progress...", expanded=True) as status:
+                with st.spinner("🧠 AI Analysis in Progress..."):
                     st.write("Preprocessing image...")
                     img_array = image.img_to_array(processed_img)
                     img_array = np.expand_dims(img_array, axis=0) / 255.0
@@ -96,8 +133,6 @@ def main():
                     predictions = model.predict(img_array)
                     predicted_class = CLASS_NAMES[np.argmax(predictions)]
                     confidence = np.max(predictions) * 100
-
-                    status.update(label="✅ Analysis Complete", state="complete")
 
                 display_results(predicted_class, confidence)
 
