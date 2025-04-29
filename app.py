@@ -6,8 +6,87 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 
-# ✅ Must be FIRST Streamlit command
-st.set_page_config(page_title="Plant Disease Detection", layout="centered")
+# ✅ Page Config with updated theme
+st.set_page_config(
+    page_title="PhytoScan AI - Plant Disease Detection",
+    page_icon="🌱",
+    layout="centered",
+    initial_sidebar_state="expanded"
+)
+
+# ----------- Custom CSS -------------
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    
+    html {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .main {
+        background: linear-gradient(135deg, #f5ffe7 0%, #e6f4d7 100%);
+    }
+    
+    .stApp {
+        max-width: 850px;
+        padding: 2rem;
+    }
+    
+    .upload-section {
+        border: 2px dashed #4CAF50;
+        border-radius: 15px;
+        padding: 2rem;
+        background: rgba(76, 175, 80, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .upload-section:hover {
+        background: rgba(76, 175, 80, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .prediction-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 1.5rem 0;
+    }
+    
+    .status-bar {
+        padding: 0.8rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    
+    .healthy {
+        background: #C8E6C9;
+        color: #1B5E20;
+    }
+    
+    .disease {
+        background: #FFCDD2;
+        color: #B71C1C;
+    }
+    
+    .stProgress > div > div > div {
+        background-color: #4CAF50;
+    }
+    
+    button[data-baseweb="button"] {
+        background: #4CAF50 !important;
+        color: white !important;
+        border-radius: 8px !important;
+        padding: 12px 24px !important;
+        transition: all 0.3s !important;
+    }
+    
+    button[data-baseweb="button"]:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ----------- Constants -------------
 MODEL_PATH = "plant_disease_modelfinal2.h5"
@@ -32,38 +111,103 @@ def load_model_from_drive():
             gdown.download(DOWNLOAD_URL, MODEL_PATH, quiet=False)
     return load_model(MODEL_PATH)
 
-# Load the model and confirm
-try:
-    model = load_model_from_drive()
-    st.write("✅ Model loaded successfully")
-except Exception as e:
-    st.error(f"❌ Model failed to load: {e}")
+# ----------- Header Section -------------
+col1, col2 = st.columns([1, 4])
+with col1:
+    st.image("https://cdn-icons-png.flaticon.com/512/2917/2917996.png", width=80)
+with col2:
+    st.title("PhytoScan AI")
+    st.markdown("**AI-Powered Plant Health Diagnosis System**")
 
-# ----------- UI Setup -------------
-st.title("🌿 Plant Disease Detection App")
-st.markdown("Upload a leaf image to detect the disease.")
-st.write("✅ UI loaded")
+st.markdown("---")
 
-# ----------- Upload Image -------------
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# ----------- Main Content -------------
+st.subheader("🌿 Upload Leaf Image")
+with st.container():
+    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+    uploaded_file = st.file_uploader(
+        " ",
+        type=["jpg", "jpeg", "png"],
+        label_visibility="collapsed"
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.caption("Supports JPG, JPEG, PNG formats | Max size 5MB")
 
 if uploaded_file is not None:
-    img = Image.open(uploaded_file)
-    st.image(img, caption='Uploaded Leaf Image', use_column_width=True)
-    st.write("✅ File uploaded")
+    with st.container():
+        st.subheader("📸 Image Preview")
+        col_img1, col_img2 = st.columns(2)
+        with col_img1:
+            img = Image.open(uploaded_file)
+            st.image(img, caption='Original Image', use_column_width=True)
+        with col_img2:
+            img_resized = img.resize((224, 224))
+            st.image(img_resized, caption='Processed Image (224x224)', use_column_width=True)
 
-    if st.button("Predict"):
-        st.write("🔍 Predict button clicked")
+    if st.button("🔍 Analyze Leaf Health", use_container_width=True):
         try:
-            with st.spinner("Analyzing..."):
-                img_resized = img.resize((224, 224))
+            model = load_model_from_drive()
+            with st.spinner("🧠 AI is analyzing..."):
+                progress_bar = st.progress(0)
+                
+                # Simulate analysis steps
+                for percent_complete in range(100):
+                    progress_bar.progress(percent_complete + 1)
+                    time.sleep(0.01)
+                
                 img_array = image.img_to_array(img_resized)
                 img_array = np.expand_dims(img_array, axis=0)
-                img_array = img_array / 255.0  # Normalize if required by model
+                img_array = img_array / 255.0
 
                 prediction = model.predict(img_array)
                 predicted_class = CLASS_NAMES[np.argmax(prediction)]
+                confidence = np.max(prediction) * 100
 
-                st.success(f"🧠 Predicted: **{predicted_class}**")
+                st.markdown("---")
+                with st.container():
+                    st.subheader("📋 Analysis Report")
+                    
+                    if "healthy" in predicted_class:
+                        status_class = "healthy"
+                        emoji = "✅"
+                    else:
+                        status_class = "disease"
+                        emoji = "⚠️"
+                    
+                    st.markdown(f"""
+                    <div class="status-bar {status_class}">
+                        <h3>{emoji} {predicted_class.replace('___', ' ').replace('__', ' ')}</h3>
+                        <p>Confidence: {confidence:.2f}%</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if status_class == "disease":
+                        st.markdown("""
+                        ## 🩺 Recommended Actions
+                        - Immediately isolate affected plants
+                        - Apply recommended fungicides
+                        - Remove severely infected leaves
+                        - Monitor plant health daily
+                        - Consult agricultural expert
+                        """)
+                    else:
+                        st.balloons()
+                        st.markdown("""
+                        ## 🌟 Healthy Plant Tips
+                        - Maintain regular watering schedule
+                        - Ensure proper sunlight exposure
+                        - Monitor for early signs of pests
+                        - Use organic fertilizers monthly
+                        - Rotate crops seasonally
+                        """)
+
         except Exception as e:
-            st.error(f"⚠️ Prediction error: {e}")
+            st.error(f"⚠️ Analysis Error: {e}")
+            
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: #666; margin-top: 2rem;">
+    <p>Powered by TensorFlow & Streamlit | 🌍 Sustainable Agriculture Initiative</p>
+    <p>⚠️ For research purposes only | Consult experts for field diagnosis</p>
+</div>
+""", unsafe_allow_html=True)
