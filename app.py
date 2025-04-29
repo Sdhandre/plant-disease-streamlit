@@ -17,15 +17,17 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* Background */
+    /* Global dark background */
     .stApp {
-        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
+        background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+        color: #e0e0e0 !important;
     }
 
-    /* Override text color for all text elements with more specificity */
+    /* Global text color */
     html, body, [class^="css"] {
-        color: #1b5e20 !important;
-        font-weight: 600;
+        color: #e0e0e0 !important;
+        font-weight: 500;
+        background-color: transparent;
     }
 
     /* Title styling */
@@ -33,19 +35,19 @@ st.markdown(
         font-size: 3rem;
         font-weight: bold;
         text-align: center;
-        color: #1b5e20;
+        color: #80cbc4;
         margin-top: 1rem;
     }
 
     /* Subheaders */
     .stMarkdown h2, .stMarkdown h3 {
-        color: #256029 !important;
+        color: #4dd0e1 !important;
         font-weight: bold;
     }
 
     /* Buttons */
     div.stButton > button {
-        background-color: #388e3c;
+        background-color: #26a69a;
         color: white !important;
         font-size: 1.2rem;
         padding: 0.6rem 1.2rem;
@@ -53,17 +55,25 @@ st.markdown(
         border: none;
     }
     div.stButton > button:hover {
-        background-color: #2e7d32;
+        background-color: #00796b;
     }
 
-    /* Sidebar text and headings */
-    .sidebar .sidebar-content, .css-1d391kg, .css-1v3fvcr {
-        color: #1b5e20 !important;
+    /* Sidebar */
+    .css-6qob1r, .css-1d391kg, .css-1v3fvcr {
+        background-color: #1e1e1e !important;
+        color: #e0e0e0 !important;
+    }
+
+    /* File uploader and widgets */
+    .stFileUploader, .stTextInput, .stSelectbox, .stSlider, .stNumberInput {
+        background-color: #2c2c2c !important;
+        color: #e0e0e0 !important;
     }
 
     /* Footer */
     footer, footer * {
-        color: #1b5e20 !important;
+        color: #999 !important;
+        background: transparent;
     }
     </style>
     """,
