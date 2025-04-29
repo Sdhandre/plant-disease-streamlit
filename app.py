@@ -102,6 +102,7 @@ di = st.experimental_singleton(lambda: {
         "treatment": "Not applicable. Continue good agricultural practices."
     }
 }
+)
 
 # Constants
 MODEL_PATH = "plant_disease_modelfinal2.h5"
