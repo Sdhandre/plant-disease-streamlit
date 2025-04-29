@@ -30,17 +30,66 @@ dark_mode = st.sidebar.checkbox("Dark Mode", value=True)
 if dark_mode:
     st.markdown(
         """
-        <style> /* Dark theme CSS... */ </style>
+        <style>
+        /* Dark theme CSS... */
+        .stApp { background: linear-gradient(135deg, #121212 0%, #1e1e1e 100%); }
+        html, body, [class^=\"css\"] { color: #e0e0e0 !important; background-color: transparent; }
+        .title { font-size: 3rem; font-weight: bold; text-align: center; color: #80cbc4; margin-top: 1rem; }
+        </style>
         """, unsafe_allow_html=True)
 else:
     st.markdown(
         """
-        <style> /* Light theme CSS... */ </style>
+        <style>
+        /* Light theme CSS... */
+        .stApp { background: #f7f7f7; }
+        html, body, [class^=\"css\"] { color: #333 !important; background-color: transparent; }
+        .title { font-size: 3rem; font-weight: bold; text-align: center; color: #2e7d32; margin-top: 1rem; }
+        </style>
         """, unsafe_allow_html=True)
 
 # Disease info mapping
 DISEASE_INFO = {
-    # same mapping as before
+    "Pepper__bell___Bacterial_spot": {
+        "cause": "Bacterial spot is caused by the bacterium Xanthomonas euvesicatoria, which infects pepper leaves and fruits.",
+        "prevention": "Use disease-free seeds, practice crop rotation, remove crop debris, and avoid overhead irrigation.",
+        "treatment": "Apply copper-based bactericides and follow integrated pest management practices to reduce spread."
+    },
+    "Pepper__bell___healthy": {
+        "cause": "No disease detected. The plant appears healthy.",
+        "prevention": "Maintain regular watering, proper fertilization, and monitor for pests.",
+        "treatment": "Not applicable. Continue good agricultural practices."
+    },
+    "Potato___Early_blight": {
+        "cause": "Early blight is caused by the fungus Alternaria solani which produces lesions on leaves and stems.",
+        "prevention": "Rotate crops, remove volunteer potato plants, and mulch to prevent soil contact.",
+        "treatment": "Use fungicides containing chlorothalonil or mancozeb and remove infected foliage."
+    },
+    "Potato___Late_blight": {
+        "cause": "Late blight is caused by the oomycete Phytophthora infestans, leading to dark lesions and tuber rot.",
+        "prevention": "Avoid overhead watering, ensure good air circulation, and destroy infected plants.",
+        "treatment": "Apply fungicides such as mancozeb and practice resistant variety planting."
+    },
+    "Potato___healthy": {
+        "cause": "No disease detected. The plant appears healthy.",
+        "prevention": "Maintain proper soil moisture, fertilization, and inspect regularly for pests.",
+        "treatment": "Not applicable. Continue good agricultural practices."
+    },
+    "Tomato__Tomato_YellowLeaf__Curl_Virus": {
+        "cause": "Tomato Yellow Leaf Curl Virus (TYLCV) is transmitted by whiteflies causing leaf curl and yellowing.",
+        "prevention": "Use resistant varieties, control whitefly populations, and employ reflective mulches.",
+        "treatment": "No cure; remove and destroy infected plants, and prevent spread by controlling vectors."
+    },
+    "Tomato__Tomato_mosaic_virus": {
+        "cause": "Tomato Mosaic Virus (ToMV) spreads via contaminated tools, hands, and seeds, causing mottling.",
+        "prevention": "Sanitize tools, use certified seeds, and isolate infected plants.",
+        "treatment": "No chemical cure; rogue out infected plants and maintain strict sanitation."
+    },
+    "Tomato_healthy": {
+        "cause": "No disease detected. The plant appears healthy.",
+        "prevention": "Ensure balanced nutrients, consistent watering, and monitor pests regularly.",
+        "treatment": "Not applicable. Continue good agricultural practices."
+    }
 }
 
 # Constants
@@ -77,13 +126,12 @@ if page == "Home":
     st.header("Single Image Prediction")
     upload_file = st.file_uploader("Upload a leaf image", type=["jpg","png","jpeg"])
     if upload_file:
-        # Save the uploaded image
         uid = uuid.uuid4().hex
         save_path = os.path.join("uploads", f"{uid}_{upload_file.name}")
         with open(save_path, "wb") as f:
             f.write(upload_file.getbuffer())
 
-        img = Image.open(upload_file).convert("RGB")
+        img = Image.open(save_path).convert("RGB")
         st.image(img, use_column_width=True, caption="Leaf Image")
         if st.button("Predict Disease"):
             with st.spinner("Analyzing..."):
@@ -92,14 +140,13 @@ if page == "Home":
                 idx = int(np.argmax(preds))
                 pred_key = CLASS_NAMES[idx]
                 pred_label = pred_key.replace("_"," ")
-                conf = float(np.max(preds))*100
+                conf = float(np.max(preds)) * 100
             st.success(f"{pred_label} ({conf:.1f}%)")
             info = DISEASE_INFO[pred_key]
             with st.expander("Details"):
                 st.markdown(f"**Cause:** {info['cause']}")
                 st.markdown(f"**Prevention:** {info['prevention']}")
                 st.markdown(f"**Treatment:** {info['treatment']}")
-            # record history
             st.session_state.history.append({
                 "timestamp": datetime.now(),
                 "label": pred_label,
@@ -113,19 +160,18 @@ elif page == "Batch Prediction":
     if files:
         results = []
         for f in files:
-            # Save each file
             uid = uuid.uuid4().hex
             path = os.path.join("uploads", f"{uid}_{f.name}")
             with open(path, "wb") as out:
                 out.write(f.getbuffer())
 
-            img = Image.open(f).convert("RGB")
+            img = Image.open(path).convert("RGB")
             arr = image.img_to_array(img.resize((224,224))) / 255.0
             preds = model.predict(np.expand_dims(arr,0))
             idx = int(np.argmax(preds))
             pred_key = CLASS_NAMES[idx]
             label = pred_key.replace("_"," ")
-            conf = float(np.max(preds))*100
+            conf = float(np.max(preds)) * 100
             results.append({"Image": f.name, "Label": label, "Confidence": f"{conf:.1f}%"})
             st.session_state.history.append({"timestamp": datetime.now(), "label": label, "confidence": conf, "file": path})
         df = pd.DataFrame(results)
