@@ -219,7 +219,7 @@ with tab_about:
     st.write("- Light/Dark mode")
     st.write("- Detailed disease info")
     st.markdown("---")
-    st.write("Developed by Your Name 🌱")
+    st.write("Developed by Sujal Dhandre 🌱")
 
 # Footer
 st.markdown("---")
