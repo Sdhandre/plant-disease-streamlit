@@ -19,15 +19,17 @@ st.markdown(
     '''
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-    body, .block-container {
-        font-family: 'Orbitron', sans-serif;
-        background: radial-gradient(circle at 50% 50%, #0a0a1a, #000000);
-        color: #e0e0ff;
+
+    /* Main container styling */
+    .reportview-container .main .block-container {
         position: relative;
-        overflow: hidden;
+        background: radial-gradient(circle at 50% 50%, #0a0a1a, #000000) !important;
+        z-index: 0;
+        font-family: 'Orbitron', sans-serif;
+        color: #e0e0ff;
     }
     /* Starfield Overlay */
-    .block-container:before {
+    .reportview-container .main .block-container:before {
         content: "";
         position: absolute;
         top: 0; left: 0;
@@ -41,7 +43,7 @@ st.markdown(
         from { background-position: 0 0; }
         to   { background-position: -10000px 5000px; }
     }
-    /* Button Glow */
+    /* Button glow animation */
     .stButton>button {
         background: linear-gradient(45deg, #ff4ecb, #4e6cff, #00ffe7);
         background-size: 200% 200%;
@@ -53,11 +55,11 @@ st.markdown(
         font-weight: bold;
     }
     @keyframes gradientBG {
-        0%{background-position:0% 50%;}
-        50%{background-position:100% 50%;}
-        100%{background-position:0% 50%;}
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
-    /* Diagnosis Card */
+    /* Diagnosis card styling */
     .stMarkdown div[style*="Diagnosis Result"] {
         background: rgba(20, 20, 50, 0.8);
         border: 2px solid #4ecbff;
@@ -70,7 +72,7 @@ st.markdown(
         from { box-shadow: 0 0 10px #4ecbff; }
         to   { box-shadow: 0 0 30px #ff4ecb; }
     }
-    /* Image Frames */
+    /* Image frame styling */
     .stImage img {
         border: 3px solid #4e6cff;
         border-radius: 12px;
@@ -128,7 +130,6 @@ def display_results(predicted_class, confidence):
     )
 
 # 🪴 Main App
-
 def main():
     # Header
     col1, col2 = st.columns([1, 4])
