@@ -8,7 +8,7 @@ from PIL import Image
 
 # Page configuration
 st.set_page_config(
-    page_title="Plant Disease Detector",
+    page_title="AgriScan-Plant Disease Detector",
     page_icon="🍃",
     layout="wide"
 )
@@ -112,7 +112,7 @@ except Exception as e:
     st.error(f"❌ Failed to load model: {e}")
 
 # Header
-st.markdown("<div class='title'>🌿 Plant Disease Detection</div>", unsafe_allow_html=True)
+st.markdown("<div class='title'>🌿AgriScan -Plant Disease Detection</div>", unsafe_allow_html=True)
 st.markdown("---")
 
 # Sidebar
