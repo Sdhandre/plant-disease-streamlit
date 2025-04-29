@@ -6,10 +6,51 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 
-# ✅ Must be FIRST Streamlit command
-st.set_page_config(page_title="Plant Disease Detection", layout="centered")
+# === Page Configuration ===
+st.set_page_config(
+    page_title="Plant Disease Detector",
+    page_icon="🍃",
+    layout="wide"
+)
 
-# ----------- Constants -------------
+# === CSS Styling ===
+st.markdown(
+    """
+    <style>
+    /* App background gradient */
+    .stApp {
+        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
+    }
+    /* Title styling */
+    .title {
+        color: #2e7d32;
+        font-size: 3rem;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    /* Button styling */
+    div.stButton > button {
+        background-color: #388e3c;
+        color: white;
+        font-size: 1.2rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        border: none;
+    }
+    div.stButton > button:hover {
+        background-color: #2e7d32;
+    }
+    /* Sidebar header */
+    .sidebar .sidebar-content h2 {
+        color: #1b5e20;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# === Constants ===
 MODEL_PATH = "plant_disease_modelfinal2.h5"
 FILE_ID = "1tDt1NSWyfkqtFzh91KJQtPNVl5mbc2QG"
 DOWNLOAD_URL = f"https://drive.google.com/uc?id={FILE_ID}"
@@ -24,46 +65,74 @@ CLASS_NAMES = [
     "Tomato_healthy"
 ]
 
-# ----------- Model Loader with Cache -------------
+# === Model Loader ===
 @st.cache_resource
-def load_model_from_drive():
+ def load_model_from_drive():
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("📥 Downloading model..."):
-            gdown.download(DOWNLOAD_URL, MODEL_PATH, quiet=False)
+        with st.spinner("📥 Downloading trained model..."):
+            gdown.download(DOWNLOAD_URL, MODEL_PATH, quiet=True)
     return load_model(MODEL_PATH)
 
-# Load the model and confirm
+# Load model
 try:
     model = load_model_from_drive()
-    st.write("✅ Model loaded successfully")
+    st.success("✅ Model loaded successfully!")
 except Exception as e:
-    st.error(f"❌ Model failed to load: {e}")
+    st.error(f"❌ Failed to load model: {e}")
 
-# ----------- UI Setup -------------
-st.title("🌿 Plant Disease Detection App")
-st.markdown("Upload a leaf image to detect the disease.")
-st.write("✅ UI loaded")
+# === Header ===
+st.markdown("<div class='title'>🌿 Plant Disease Detection</div>", unsafe_allow_html=True)
+st.markdown("---")
 
-# ----------- Upload Image -------------
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# === Sidebar ===
+with st.sidebar:
+    st.header("About")
+    st.write(
+        "Upload a clear photo of a leaf, and our AI-powered model will identify the disease for you in seconds!"
+    )
+    st.markdown("---")
+    st.subheader("Possible Classes:")
+    for cls in CLASS_NAMES:
+        st.write(f"• {cls.replace('_', ' ')}")
+    st.markdown("---")
+    st.write("Developed by Your Name 🌱")
 
-if uploaded_file is not None:
-    img = Image.open(uploaded_file)
-    st.image(img, caption='Uploaded Leaf Image', use_column_width=True)
-    st.write("✅ File uploaded")
+# === Main Container ===
+upload_col, result_col = st.columns([1, 1])
 
-    if st.button("Predict"):
-        st.write("🔍 Predict button clicked")
+with upload_col:
+    st.subheader("1. Upload Leaf Image")
+    uploaded_file = st.file_uploader(
+        label="", type=["jpg", "jpeg", "png"], help="Choose a leaf image file"
+    )
+
+with result_col:
+    st.subheader("2. Prediction")
+    if uploaded_file:
+        img = Image.open(uploaded_file).convert('RGB')
+        st.image(img, caption='Uploaded Leaf', use_column_width=True)
+
+    if uploaded_file and st.button("Detect Disease 🍃"):
         try:
-            with st.spinner("Analyzing..."):
+            with st.spinner("🔬 Analyzing image..."):
                 img_resized = img.resize((224, 224))
-                img_array = image.img_to_array(img_resized)
+                img_array = image.img_to_array(img_resized) / 255.0
                 img_array = np.expand_dims(img_array, axis=0)
-                img_array = img_array / 255.0  # Normalize if required by model
+                preds = model.predict(img_array)
+                pred_idx = int(np.argmax(preds, axis=1)[0])
+                pred_label = CLASS_NAMES[pred_idx].replace('_', ' ')
+                confidence = float(np.max(preds)) * 100
 
-                prediction = model.predict(img_array)
-                predicted_class = CLASS_NAMES[np.argmax(prediction)]
-
-                st.success(f"🧠 Predicted: **{predicted_class}**")
+            st.success(f"**{pred_label}** detected with {confidence:.2f}% confidence! 🌿")
         except Exception as e:
-            st.error(f"⚠️ Prediction error: {e}")
+            st.error(f"Error during prediction: {e}")
+    elif not uploaded_file:
+        st.info("Please upload an image to begin.")
+
+# === Footer ===
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center; color: #555;'>" 
+    "&copy; 2025 Plant Disease Detection | Powered by TensorFlow & Streamlit</p>",
+    unsafe_allow_html=True
+)
