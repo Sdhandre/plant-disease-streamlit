@@ -59,56 +59,54 @@ else:
     )
 
 # Disease info mapping
-di = st.experimental_singleton(lambda: {
+DISEASE_INFO = {
     "Pepper__bell___Bacterial_spot": {
         "cause": "Bacterial spot is caused by the bacterium Xanthomonas euvesicatoria.",
         "prevention": "Use disease-free seeds, rotate crops, remove debris.",
-        "treatment": "Apply copper-based bactericides and IPM."
+        "treatment": "Apply copper-based bactericides and integrated pest management."
     },
-    # ... other diseases ...
     "Pepper__bell___healthy": {
         "cause": "No disease detected. The plant appears healthy.",
-        "prevention": "Maintain regular watering, proper fertilization, and monitor for pests.",
+        "prevention": "Maintain regular watering and proper fertilization.",
         "treatment": "Not applicable. Continue good agricultural practices."
     },
     "Potato___Early_blight": {
-        "cause": "Early blight is caused by the fungus Alternaria solani which produces lesions on leaves and stems.",
-        "prevention": "Rotate crops, remove volunteer potato plants, and mulch to prevent soil contact.",
-        "treatment": "Use fungicides containing chlorothalonil or mancozeb and remove infected foliage."
+        "cause": "Early blight is caused by the fungus Alternaria solani.",
+        "prevention": "Rotate crops, remove volunteer plants, and mulch to prevent soil contact.",
+        "treatment": "Use fungicides containing chlorothalonil or mancozeb."
     },
     "Potato___Late_blight": {
-        "cause": "Late blight is caused by the oomycete Phytophthora infestans, leading to dark lesions and tuber rot.",
-        "prevention": "Avoid overhead watering, ensure good air circulation, and destroy infected plants.",
-        "treatment": "Apply fungicides such as mancozeb and practice resistant variety planting."
+        "cause": "Late blight is caused by Phytophthora infestans, leading to dark lesions.",
+        "prevention": "Ensure good air circulation and destroy infected plants.",
+        "treatment": "Apply mancozeb fungicide and plant resistant varieties."
     },
     "Potato___healthy": {
         "cause": "No disease detected. The plant appears healthy.",
-        "prevention": "Maintain proper soil moisture, fertilization, and inspect regularly for pests.",
+        "prevention": "Maintain proper soil moisture and inspect regularly.",
         "treatment": "Not applicable. Continue good agricultural practices."
     },
     "Tomato__Tomato_YellowLeaf__Curl_Virus": {
-        "cause": "Tomato Yellow Leaf Curl Virus (TYLCV) is transmitted by whiteflies causing leaf curl and yellowing.",
-        "prevention": "Use resistant varieties, control whitefly populations, and employ reflective mulches.",
-        "treatment": "No cure; remove and destroy infected plants, and prevent spread by controlling vectors."
+        "cause": "Tomato Yellow Leaf Curl Virus is transmitted by whiteflies.",
+        "prevention": "Use resistant varieties and control whitefly populations.",
+        "treatment": "Remove infected plants and prevent vector spread."
     },
     "Tomato__Tomato_mosaic_virus": {
-        "cause": "Tomato Mosaic Virus (ToMV) spreads via contaminated tools, hands, and seeds, causing mottling.",
-        "prevention": "Sanitize tools, use certified seeds, and isolate infected plants.",
-        "treatment": "No chemical cure; rogue out infected plants and maintain strict sanitation."
+        "cause": "Tomato Mosaic Virus spreads via contaminated tools and seeds.",
+        "prevention": "Sanitize tools and use certified seeds.",
+        "treatment": "Remove infected plants and maintain sanitation."
     },
     "Tomato_healthy": {
         "cause": "No disease detected. The plant appears healthy.",
-        "prevention": "Ensure balanced nutrients, consistent watering, and monitor pests regularly.",
+        "prevention": "Ensure balanced nutrients and regular pest monitoring.",
         "treatment": "Not applicable. Continue good agricultural practices."
     }
 }
-)
 
 # Constants
 MODEL_PATH = "plant_disease_modelfinal2.h5"
 FILE_ID = "1tDt1NSWyfkqtFzh91KJQtPNVl5mbc2QG"
 DOWNLOAD_URL = f"https://drive.google.com/uc?id={FILE_ID}"
-CLASS_NAMES = list(di.keys())
+CLASS_NAMES = list(DISEASE_INFO.keys())
 
 # Model loader with caching
 @st.cache_resource
@@ -118,7 +116,7 @@ def load_model_from_drive():
             gdown.download(DOWNLOAD_URL, MODEL_PATH, quiet=True)
     return load_model(MODEL_PATH)
 
-model = None
+# Load the model
 try:
     model = load_model_from_drive()
     st.sidebar.success("Model loaded successfully")
@@ -141,26 +139,25 @@ if page == "Home":
         img = Image.open(upload_file).convert("RGB")
         st.image(img, use_column_width=True, caption="Leaf Image")
         if st.button("Predict Disease"):
-            cols = st.columns(2)
-            with cols[1]:
-                with st.spinner("Analyzing..."):
-                    arr = image.img_to_array(img.resize((224,224))) / 255.0
-                    pred = model.predict(np.expand_dims(arr,0))
-                    idx = int(np.argmax(pred))
-                    label = CLASS_NAMES[idx].replace("_"," ")
-                    conf = float(np.max(pred))*100
-                st.success(f"{label} ({conf:.1f}%)")
-                info = di[label.replace(' ', '_')]
-                with st.expander("Details"):
-                    st.markdown(f"**Cause:** {info['cause']}")
-                    st.markdown(f"**Prevention:** {info['prevention']}")
-                    st.markdown(f"**Treatment:** {info['treatment']}")
-                # record history
-                st.session_state.history.append({
-                    "timestamp": datetime.now(),
-                    "label": label,
-                    "confidence": conf
-                })
+            with st.spinner("Analyzing..."):
+                arr = image.img_to_array(img.resize((224,224))) / 255.0
+                preds = model.predict(np.expand_dims(arr,0))
+                idx = int(np.argmax(preds))
+                pred_key = CLASS_NAMES[idx]
+                pred_label = pred_key.replace("_"," ")
+                conf = float(np.max(preds))*100
+            st.success(f"{pred_label} ({conf:.1f}%)")
+            info = DISEASE_INFO[pred_key]
+            with st.expander("Details"):
+                st.markdown(f"**Cause:** {info['cause']}")
+                st.markdown(f"**Prevention:** {info['prevention']}")
+                st.markdown(f"**Treatment:** {info['treatment']}")
+            # record history
+            st.session_state.history.append({
+                "timestamp": datetime.now(),
+                "label": pred_label,
+                "confidence": conf
+            })
 
 elif page == "Batch Prediction":
     st.header("Batch Prediction")
@@ -168,11 +165,13 @@ elif page == "Batch Prediction":
     if files:
         results = []
         for f in files:
-            img = Image.open(f).convert("RGB"); arr = image.img_to_array(img.resize((224,224))) / 255.0
-            pred = model.predict(np.expand_dims(arr,0))
-            idx = int(np.argmax(pred))
-            label = CLASS_NAMES[idx].replace("_"," ")
-            conf = float(np.max(pred))*100
+            img = Image.open(f).convert("RGB")
+            arr = image.img_to_array(img.resize((224,224))) / 255.0
+            preds = model.predict(np.expand_dims(arr,0))
+            idx = int(np.argmax(preds))
+            pred_key = CLASS_NAMES[idx]
+            label = pred_key.replace("_"," ")
+            conf = float(np.max(preds))*100
             results.append({"Image": f.name, "Label": label, "Confidence": f"{conf:.1f}%"})
             st.session_state.history.append({"timestamp": datetime.now(), "label": label, "confidence": conf})
         df = pd.DataFrame(results)
@@ -209,4 +208,3 @@ elif page == "About":
 # Footer
 st.markdown("---")
 st.markdown("<p style='text-align:center;color:#999;'>&copy; 2025 AgriScan</p>", unsafe_allow_html=True)
-
