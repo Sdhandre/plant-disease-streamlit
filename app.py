@@ -99,7 +99,7 @@ DISEASE_INFO = {
 }
 CLASS_NAMES = list(DISEASE_INFO.keys())
 
-# Model loading\ nMODEL_PATH = "plant_disease_modelfinal2.h5"
+MODEL_PATH = "plant_disease_modelfinal2.h5"
 FILE_ID = "1tDt1NSWyfkqtFzh91KJQtPNVl5mbc2QG"
 DOWNLOAD_URL = f"https://drive.google.com/uc?id={FILE_ID}"
 
